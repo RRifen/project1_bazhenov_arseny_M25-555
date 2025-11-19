@@ -95,7 +95,9 @@ ROOMS = {
         "items": [],
         "puzzle": (
             'На потолке написано: "Там все стороны света — на север глядят.',
-            "mayhem",
+            "юг",
         ),
     },
 }
+
+REWARDS = ["coin", "branch", "candy", "bottle"]
