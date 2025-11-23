@@ -1,5 +1,5 @@
 from labyrinth_game.constants import ROOMS
-from labyrinth_game.utils import describe_current_room
+from labyrinth_game.utils import describe_current_room, random_event
 
 
 def show_inventory(game_state):
@@ -16,9 +16,19 @@ def move_player(game_state, direction):
     room = ROOMS[room_name]
 
     if direction in room["exits"]:
+        next_room = room["exits"][direction]
+        if next_room == "treasure_room":
+            if "rusty_key" not in game_state["player_inventory"]:
+                print("Дверь заперта. Нужен ключ, чтобы пройти дальше.")
+                return
+            print(
+                "Вы используете найденный ключ, чтобы открыть путь в комнату сокровищ."
+            )
+
         game_state["current_room"] = room["exits"][direction]
-        game_state["steps"] = game_state["steps"] + 1
+        game_state["steps_taken"] = game_state["steps_taken"] + 1
         describe_current_room(game_state)
+        random_event(game_state)
     else:
         print("Нельзя пойти в этом направлении.")
 
@@ -53,7 +63,7 @@ def use_item(game_state, item_name):
         case "sword":
             print("Вы чувствуете себя более уверенно.")
 
-        case "bronze box":
+        case "bronze_box":
             print("Вы открыли бронзовую шкатулку. Внутри вы нашли ржавый ключ!")
             if "rusty_key" not in inventory:
                 game_state["player_inventory"].append("rusty_key")

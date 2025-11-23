@@ -39,6 +39,9 @@ def process_command(game_state, command):
             else:
                 print("Укажите направление.")
 
+        case "north" | "south" | "east" | "west":
+            move_player(game_state, action)
+
         case "take":
             if argument:
                 take_item(game_state, argument)
@@ -56,7 +59,7 @@ def process_command(game_state, command):
             else:
                 solve_puzzle(game_state)
 
-        case "quit":
+        case "quit" | "exit":
             game_state["game_over"] = True
 
         case "help":
@@ -80,6 +83,7 @@ def main():
 
     while not game_state["game_over"]:
         command = get_input("Введите команду: ")
+        print(command)
         process_command(game_state, command)
 
 
