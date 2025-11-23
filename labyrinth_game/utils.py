@@ -2,8 +2,22 @@ import math
 
 from labyrinth_game.constants import COMMANDS, ROOMS
 
+EVENT_DISTRIBUTION = 10
+BAD_EVENT_NUMBER = 0
+EVENT_TYPES_COUNT = 3
+COIN_EVENT = 0
+FEAR_EVENT = 1
+TRAP_EVENT = 2
+DAMAGE_DISTRIBUTION = 10
+DAMAGE_CHANCE = 3
+
 
 def describe_current_room(game_state):
+    """Выводит описание текущей комнаты, включая предметы, выходы и наличие загадки.
+
+    Args:
+        game_state: Словарь с состоянием игры, содержащий current_room
+    """
     room_name = game_state["current_room"]
     room = ROOMS[room_name]
 
@@ -21,6 +35,15 @@ def describe_current_room(game_state):
 
 
 def solve_puzzle(game_state):
+    """Позволяет игроку решить загадку в текущей комнате.
+
+    Запрашивает ответ у игрока и проверяет его. При правильном ответе
+    добавляет награду в инвентарь и удаляет загадку из комнаты.
+    При неправильном ответе в комнате trap_room активирует ловушку.
+
+    Args:
+        game_state: Словарь с состоянием игры
+    """
     room_name = game_state["current_room"]
     room = ROOMS[room_name]
 
@@ -49,6 +72,15 @@ def solve_puzzle(game_state):
 
 
 def attempt_open_treasure(game_state):
+    """Попытка открыть сундук с сокровищами.
+
+    Если у игрока есть treasure_key, сундук открывается автоматически.
+    Иначе игрок может попытаться ввести код. При успешном открытии
+    игра завершается победой.
+
+    Args:
+        game_state: Словарь с состоянием игры
+    """
     room_name = game_state["current_room"]
     room = ROOMS[room_name]
 
@@ -80,12 +112,22 @@ def attempt_open_treasure(game_state):
 
 
 def show_help():
+    """Выводит на экран список доступных команд игры и их описание."""
     print("\nДоступные команды:")
     for command, description in COMMANDS.items():
         print(f"{command:<16} - {description}")
 
 
 def get_input(prompt="> "):
+    """Получает ввод от пользователя с обработкой ошибок.
+
+    Args:
+        prompt: Приглашение для ввода (по умолчанию "> ")
+
+    Returns:
+        str: Введенная пользователем строка в нижнем регистре или "quit"
+             при прерывании ввода
+    """
     try:
         user_input = input(prompt).strip().lower()
         return user_input
@@ -95,12 +137,32 @@ def get_input(prompt="> "):
 
 
 def pseudo_random(seed, modulo):
+    """Генерирует псевдослучайное число на основе синусоидальной функции.
+
+    Использует математическую формулу для генерации
+    псевдослучайного значения в диапазоне [0, modulo).
+
+    Args:
+        seed: Начальное значение для генерации
+        modulo: Верхняя граница диапазона (не включается)
+
+    Returns:
+        int: Псевдослучайное число от 0 до modulo-1
+    """
     x = math.sin(seed * 12.9898) * 43758.5453
     fractional = x - math.floor(x)
     return math.floor(fractional * modulo)
 
 
 def trigger_trap(game_state):
+    """Активирует ловушку в комнате.
+
+    Если у игрока есть предметы в инвентаре, случайно удаляет один из них.
+    Если инвентарь пуст, с некоторой вероятностью завершает игру проигрышем.
+
+    Args:
+        game_state: Словарь с состоянием игры
+    """
     print("Ловушка активирована! Пол стал дрожать...")
 
     inventory = game_state["player_inventory"]
@@ -111,8 +173,8 @@ def trigger_trap(game_state):
         inventory.remove(lost_item)
         print(f"Из-за тряски вы потеряли: {lost_item}!")
     else:
-        damage_chance = pseudo_random(game_state["steps_taken"], 10)
-        if damage_chance < 3:
+        damage_chance = pseudo_random(game_state["steps_taken"], DAMAGE_DISTRIBUTION)
+        if damage_chance < DAMAGE_CHANCE:
             print("Игра окончена. Вы проиграли!")
             game_state["game_over"] = True
         else:
@@ -120,26 +182,36 @@ def trigger_trap(game_state):
 
 
 def random_event(game_state):
-    event_chance = pseudo_random(game_state["steps_taken"], 10)
-    if event_chance != 0:
+    """Обрабатывает случайные события при перемещении между комнатами.
+
+    С определенной вероятностью может произойти одно из событий:
+    - Появление монетки в комнате
+    - Странный шорох (защита мечом)
+    - Активация ловушки в trap_room (если нет факела)
+
+    Args:
+        game_state: Словарь с состоянием игры
+    """
+    event_chance = pseudo_random(game_state["steps_taken"], EVENT_DISTRIBUTION)
+    if event_chance != BAD_EVENT_NUMBER:
         return
 
-    event_type = pseudo_random(game_state["steps_taken"], 3)
+    event_type = pseudo_random(game_state["steps_taken"], EVENT_TYPES_COUNT)
 
     room_name = game_state["current_room"]
     room = ROOMS[room_name]
     inventory = game_state["player_inventory"]
 
-    if event_type == 0:
+    if event_type == COIN_EVENT:
         room["items"].append("coin")
         print("Вы нашли монетку! Она теперь лежит в этой комнате.")
 
-    elif event_type == 1:
+    elif event_type == FEAR_EVENT:
         print("Вы слышите странный шорох...")
         if "sword" in inventory:
             print("Вы достали меч, и существо убежало.")
 
-    elif event_type == 2:
+    elif event_type == TRAP_EVENT:
         if room_name == "trap_room" and "torch" not in inventory:
             print("Вы чувствуете опасность...")
             trigger_trap(game_state)
