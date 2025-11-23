@@ -1,9 +1,9 @@
 [project]
 name = "project1-bazhenov-arseny-m25-555"
 version = "0.1.0"
-description = ""
+description = "Проект по дисциплине Программирование на Python"
 authors = [
-    {name = "RRifen",email = "gorbaty.kit@gmail.com"}
+    {name = "Arseny Bazhenov",email = "gorbaty.kit@gmail.com"}
 ]
 requires-python = ">=3.14"
 dependencies = [

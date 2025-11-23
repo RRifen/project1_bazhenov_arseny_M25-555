@@ -18,6 +18,12 @@ from labyrinth_game.utils import (
 
 
 def process_command(game_state, command):
+    """Обрабатывает команду игрока и выполняет соответствующее действие.
+
+    Args:
+        game_state: Словарь с состоянием игры
+        command: Строка с командой игрока (может содержать аргументы)
+    """
     parts = command.split()
 
     action = parts[0]
@@ -70,6 +76,11 @@ def process_command(game_state, command):
 
 
 def main():
+    """Главная функция игры. Инициализирует состояние игры и запускает игровой цикл.
+
+    Создает начальное состояние игры и обрабатывает команды игрока до тех пор,
+    пока игра не будет завершена.
+    """
     game_state = {
         "player_inventory": [],  # Инвентарь игрока
         "current_room": "entrance",  # Текущая комната
